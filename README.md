@@ -1,22 +1,9 @@
-
-# P5 TypeScript Starter
-
-This project will quickly get you something working in [p5.js](https://p5js.org/) and [typescript](https://www.typescriptlang.org/).
-
-## Demo
-
-**[Click here for Demo](https://gaweph.github.io/p5-typescript-starter/)**
-
-![Demo](https://gaweph.github.io/p5-typescript-starter/p5-typescript-demo.png?raw=true "Demo")
-
-This demo is based on the [Regular Polygon](https://p5js.org/examples/form-regular-polygon.html) sketch available in the p5js examples.
-
 ## Getting Started
 
 ### Installing
 
 ```
-git clone https://github.com/Gaweph/p5-typescript-starter.git
+git clone https://github.com/shusain/card-game
 ```
 
 ```
