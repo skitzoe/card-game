@@ -4,6 +4,7 @@ class GameRunner {
     GAME_PHASES: Array<string> =  ["pregame", "draw", "roll for cred", "play card", "choose attackers", "attacking", "final play card"]
     gamePhase = "pregame";
     board: Array<Card> = []
+
     private lastEarnedStreetCred: number
 
     constructor() {
@@ -51,7 +52,9 @@ class GameRunner {
 
     draw() {
         if(this.gamePhase != "pregame") {
-            this.currentPlayer.draw();
+          this.players[0].draw()
+          this.players[1].draw(true)
+            
             this.board.forEach(card => card.draw())
             fill(255)
             text(this.gamePhase, windowWidth - 200, windowHeight-100)

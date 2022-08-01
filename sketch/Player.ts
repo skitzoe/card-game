@@ -5,6 +5,7 @@ class Player {
     handLimit: number = 7
     selectedDeck: Deck = new Deck()
     streetCred: number = 0;
+    graveYard: Array<Card>;
     constructor(public playerNumber:number) {
         this.selectedDeck.cards = Deck.makeDeck()
     }
@@ -12,7 +13,8 @@ class Player {
     drawACard() {
         this.hand.push(this.selectedDeck.cards.pop());
     }
-    drawAHandOfCards() {
+
+    drawAHandOfCards(drawOnTop = false) {
         this.hand = []
         for (let i = 0; i < 7; i++) {
             this.drawACard()
@@ -25,10 +27,14 @@ class Player {
         return newStreetCred
     }
 
-    draw() {
+    draw(drawOnTop = false) {
         this.hand.forEach(card => {
             card.x = windowWidth/2 + this.hand.indexOf(card)*100 - this.hand.length/2 * 100
-            card.y = windowHeight - 200;
+            if(drawOnTop) {
+                card.y = 100;
+            } else {
+                card.y = windowHeight - 400;
+            }
             card.draw()
         })
     }

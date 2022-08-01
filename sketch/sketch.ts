@@ -7,6 +7,7 @@ function setup() {
   game = new CryptoHomieGame();
   createCanvas(windowWidth, windowHeight)
   rectMode(CENTER).noFill().frameRate(30);
+  ImagePreloader.loadImages();
 }
 
 // p5 WILL AUTO RUN THIS FUNCTION IF THE BROWSER WINDOW SIZE CHANGES
@@ -18,6 +19,6 @@ function windowResized() {
 function draw() {
   
    // CLEAR BACKGROUND
-  background(0);
+  background(125);
   game.draw()
 }
