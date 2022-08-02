@@ -6,7 +6,7 @@ function setup() {
   console.log("🚀 - Setup initialized - P5 is running");
   game = new CryptoHomieGame();
   createCanvas(windowWidth, windowHeight)
-  rectMode(CENTER).noFill().frameRate(30);
+  rectMode(CORNER).noFill().frameRate(30);
   ImagePreloader.loadImages();
 }
 

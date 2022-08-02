@@ -16,11 +16,18 @@ var Card = (function () {
     Card.prototype.calculateCost = function () {
         return this.attack + this.defense;
     };
-    Card.prototype.draw = function () {
+    Card.prototype.checkMouseIsOver = function () {
+        console.log(mouseX, mouseY);
+        console.log(this.x * 0.35, this.cardImage.width * 0.35);
+        console.log(this.y * 0.35, this.cardImage.height * 0.35);
+        return mouseX > this.x * 0.35 && mouseX < this.x * 0.35 + this.cardImage.width * 0.35 && mouseY > this.y * 0.35 && mouseY < this.y * 0.35 + this.cardImage.height * 0.35;
+    };
+    Card.prototype.draw = function (highlighted) {
+        if (highlighted === void 0) { highlighted = false; }
         this.cardImage.background("#ff7f0f");
         this.cardImage.noFill();
         this.cardImage.strokeWeight(10);
-        this.cardImage.stroke(0);
+        highlighted ? this.cardImage.stroke(125) : this.cardImage.stroke(0);
         this.cardImage.rect(0, 0, this.cardImage.width, this.cardImage.height);
         this.cardImage.rect(29, 75, 473, 324);
         this.cardImage.strokeWeight(3);
@@ -36,8 +43,8 @@ var Card = (function () {
         this.cardImage.image(ImagePreloader.preloadedImages['mouth' + this.mouth], -132, 0);
         push();
         translate(this.x, this.y);
-        scale(0.25);
-        image(this.cardImage, this.x, this.y);
+        scale(0.35);
+        image(this.cardImage, 0, 0);
         pop();
     };
     return Card;
@@ -118,10 +125,21 @@ var GameRunner = (function () {
         this.gamePhase = "draw";
     };
     GameRunner.prototype.draw = function () {
+        var _this = this;
         if (this.gamePhase != "pregame") {
-            this.players[0].draw();
-            this.players[1].draw(true);
-            this.board.forEach(function (card) { return card.draw(); });
+            this.drawPlayersHand(this.players[0]);
+            this.drawPlayersHand(this.players[1], true);
+            this.board.forEach(function (card) {
+                if (mouseIsPressed) {
+                    console.log("checking for card selection");
+                    if (card.checkMouseIsOver())
+                        _this.selectedCard = card;
+                }
+                var highlighted = false;
+                if (_this.selectedCard == card)
+                    highlighted = true;
+                card.draw(highlighted);
+            });
             fill(255);
             text(this.gamePhase, windowWidth - 200, windowHeight - 100);
             text("Player " + this.currentPlayer.playerNumber, windowWidth / 2, 30);
@@ -132,6 +150,28 @@ var GameRunner = (function () {
             }
         }
     };
+    GameRunner.prototype.drawPlayersHand = function (player, drawOnTop) {
+        var _this = this;
+        if (drawOnTop === void 0) { drawOnTop = false; }
+        player.hand.forEach(function (card) {
+            if (mouseIsPressed) {
+                console.log("checking for card selection");
+                if (card.checkMouseIsOver())
+                    _this.selectedCard = card;
+            }
+            var highlighted = false;
+            if (_this.selectedCard == card)
+                highlighted = true;
+            card.x = windowWidth / 2 + player.hand.indexOf(card) * 100 - player.hand.length / 2 * 100;
+            if (drawOnTop) {
+                card.y = 100;
+            }
+            else {
+                card.y = windowHeight - 400;
+            }
+            card.draw();
+        });
+    };
     return GameRunner;
 }());
 var ImagePreloader = (function () {
@@ -140,8 +180,6 @@ var ImagePreloader = (function () {
     ImagePreloader.prototype.ImagePreloader = function () {
     };
     ImagePreloader.loadImages = function () {
-        ImagePreloader.preloadedImages['bandana1'] = loadImage("images/bandana/bandana.png");
-        ImagePreloader.preloadedImages['bandana2'] = loadImage("images/bandana/bandana2.png");
         for (var index = 0; index < 4; index++) {
             ImagePreloader.preloadedImages['brow' + index] = loadImage("images/eyebrows/brow" + (index + 1) + ".png");
         }
@@ -197,18 +235,7 @@ var Player = (function () {
         return newStreetCred;
     };
     Player.prototype.draw = function (drawOnTop) {
-        var _this = this;
         if (drawOnTop === void 0) { drawOnTop = false; }
-        this.hand.forEach(function (card) {
-            card.x = windowWidth / 2 + _this.hand.indexOf(card) * 100 - _this.hand.length / 2 * 100;
-            if (drawOnTop) {
-                card.y = 100;
-            }
-            else {
-                card.y = windowHeight - 400;
-            }
-            card.draw();
-        });
     };
     return Player;
 }());
@@ -217,7 +244,7 @@ function setup() {
     console.log("🚀 - Setup initialized - P5 is running");
     game = new CryptoHomieGame();
     createCanvas(windowWidth, windowHeight);
-    rectMode(CENTER).noFill().frameRate(30);
+    rectMode(CORNER).noFill().frameRate(30);
     ImagePreloader.loadImages();
 }
 function windowResized() {

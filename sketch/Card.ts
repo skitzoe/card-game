@@ -26,11 +26,18 @@ class Card {
     calculateCost() {
         return this.attack + this.defense
     }
-    draw() {
+    checkMouseIsOver() {
+        console.log(mouseX, mouseY)
+        console.log(this.x * 0.35, this.cardImage.width * 0.35)
+        console.log(this.y * 0.35, this.cardImage.height * 0.35)
+        
+        return mouseX > this.x * 0.35 && mouseX < this.x * 0.35+this.cardImage.width * 0.35 && mouseY > this.y * 0.35 && mouseY < this.y * 0.35 + this.cardImage.height * 0.35
+    }
+    draw(highlighted = false) {
         this.cardImage.background("#ff7f0f");
         this.cardImage.noFill();
         this.cardImage.strokeWeight(10)
-        this.cardImage.stroke(0)
+        highlighted ? this.cardImage.stroke(125) : this.cardImage.stroke(0)
         this.cardImage.rect(0,0,this.cardImage.width,this.cardImage.height)
         this.cardImage.rect(29,75,473,324)
         this.cardImage.strokeWeight(3)
@@ -46,8 +53,8 @@ class Card {
         this.cardImage.image(ImagePreloader.preloadedImages['mouth'+this.mouth],-132,0)
         push()
         translate(this.x, this.y)
-        scale(0.25)
-        image(this.cardImage, this.x, this.y)
+        scale(0.35)
+        image(this.cardImage, 0,0)
         pop()
     }
 }

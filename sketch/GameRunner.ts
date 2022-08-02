@@ -6,6 +6,7 @@ class GameRunner {
     board: Array<Card> = []
 
     private lastEarnedStreetCred: number
+    private selectedCard: Card
 
     constructor() {
         this.players = [
@@ -52,10 +53,21 @@ class GameRunner {
 
     draw() {
         if(this.gamePhase != "pregame") {
-          this.players[0].draw()
-          this.players[1].draw(true)
+          this.drawPlayersHand(this.players[0])
+          this.drawPlayersHand(this.players[1], true)
             
-            this.board.forEach(card => card.draw())
+            this.board.forEach(card => {
+              if(mouseIsPressed) {
+                console.log("checking for card selection")
+                if(card.checkMouseIsOver())
+                  this.selectedCard = card;
+              }
+              let highlighted = false
+              if(this.selectedCard == card)
+                highlighted = true
+
+              card.draw(highlighted)
+            })
             fill(255)
             text(this.gamePhase, windowWidth - 200, windowHeight-100)
             text("Player " + this.currentPlayer.playerNumber, windowWidth/2, 30)
@@ -65,5 +77,25 @@ class GameRunner {
               text("New Street Cred Earned: " + this.lastEarnedStreetCred, windowWidth - 200, windowHeight-120)
             }
         }
+    }
+    drawPlayersHand(player:Player, drawOnTop = false) {
+      
+        player.hand.forEach(card => {
+          if(mouseIsPressed) {
+            console.log("checking for card selection")
+            if(card.checkMouseIsOver())
+              this.selectedCard = card;
+          }
+          let highlighted = false
+          if(this.selectedCard == card)
+            highlighted = true
+          card.x = windowWidth/2 + player.hand.indexOf(card)*100 - player.hand.length/2 * 100
+          if(drawOnTop) {
+              card.y = 100;
+          } else {
+              card.y = windowHeight - 400;
+          }
+          card.draw()
+      })
     }
 }

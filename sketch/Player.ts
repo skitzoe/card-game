@@ -28,14 +28,5 @@ class Player {
     }
 
     draw(drawOnTop = false) {
-        this.hand.forEach(card => {
-            card.x = windowWidth/2 + this.hand.indexOf(card)*100 - this.hand.length/2 * 100
-            if(drawOnTop) {
-                card.y = 100;
-            } else {
-                card.y = windowHeight - 400;
-            }
-            card.draw()
-        })
     }
 }

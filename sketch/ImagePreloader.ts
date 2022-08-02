@@ -4,8 +4,6 @@ class ImagePreloader {
     public ImagePreloader() {
     }
     static loadImages() {
-        ImagePreloader.preloadedImages['bandana1'] = loadImage(`images/bandana/bandana.png`)
-        ImagePreloader.preloadedImages['bandana2'] = loadImage(`images/bandana/bandana2.png`)
         for (let index = 0; index < 4; index++) {
             ImagePreloader.preloadedImages['brow'+index] = loadImage(`images/eyebrows/brow${index+1}.png`)
         }
