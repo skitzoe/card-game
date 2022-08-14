@@ -61,18 +61,23 @@ class GameRunner {
         this.goToNextPhase()
       }else if(this.gamePhase == "play card") {
         // Waiting for user to play any cards they can then move on
+        if(this.currentPlayer.streetCred == 0)
+          this.goToNextPhase()
       }else if(this.gamePhase == "choose attackers") {
         // Waiting for user to choose attackers
       } else if(this.gamePhase == "choose defenders") {
-
+        if(this.attackers.length <= 0)
+          this.goToNextPhase()
       }else if(this.gamePhase == "fight") {
         this.fight()
       }else if(this.gamePhase == "final play card") {
+        if(this.currentPlayer.streetCred == 0)
+          this.goToNextPhase()
       } else if(this.gamePhase == "change players") {
         console.log("Changing players")
         this.currentPlayer.board.forEach(card => card.summoningSickness = false)
 
-        this.currentPlayer = this.players[0] == this.currentPlayer ? this.players[1] : this.players[0];
+        this.currentPlayer = this.otherPlayer;
 
         this.currentPlayer.board.forEach(card => card.tapped = false)
       }
@@ -85,7 +90,7 @@ class GameRunner {
     }
 
     draw() {
-      if(this.gamePhase == "play card") {
+      if(this.gamePhase == "play card" || this.gamePhase == "final play card") {
         if(this.selectedCard && this.currentPlayer.hand.indexOf(this.selectedCard)!=-1 && this.selectedCard.canBePlayed(this.currentPlayer.board, this.currentPlayer)) {
           this.currentPlayer.board.push(this.selectedCard)
           this.currentPlayer.streetCred -= this.selectedCard.calculateCost()
@@ -144,14 +149,14 @@ class GameRunner {
           }
         })
       } else {
-        this.gamePhase = "final play card"
+        this.goToNextPhase()
       }
     }
 
     handleChooseDefenders() {
       if(this.attackers.length > 0 && this.otherPlayer.board.length > 0) {
         this.otherPlayer.board.forEach(card => {
-          if(card.checkMouseIsOver() && this.defenders.filter(defenderMatch => defenderMatch.defendingCard == card).length == 0) {
+          if(card.checkMouseIsOver() && this.defenders.filter(defenderMatch => defenderMatch.defendingCard == card).length == 0 && !card.tapped) {
             this.lastSelectedDefender = card
           }
         })
@@ -220,14 +225,14 @@ class GameRunner {
         card.x = windowWidth/2 + player.hand.indexOf(card)*100 - player.hand.length/2 * 100
           
         if(drawOnTop) {
-            card.y = 100;
+            card.y = 10;
         } else {
-            card.y = windowHeight - 300;
+            card.y = windowHeight - 100;
         }
 
         let highlighted = false
         if(this.selectedCard == card) {
-          card.y -= 100;
+          card.y += drawOnTop ? 100 : -100;
           highlighted = true
         }
         card.draw(highlighted)
