@@ -6,6 +6,8 @@ class Deck {
             const card = new Card()
             newDeck.push(card)
         }
+        let myWeapon = new WeaponCard();
+        newDeck.push(myWeapon)
         return newDeck
     }
 }

@@ -5,7 +5,8 @@ class Player {
     handLimit: number = 7
     selectedDeck: Deck = new Deck()
     streetCred: number = 0;
-    graveYard: Array<Card>;
+    graveYard: Array<Card> = [];
+    board: Array<Card> = [];
     constructor(public playerNumber:number) {
         this.selectedDeck.cards = Deck.makeDeck()
     }

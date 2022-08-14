@@ -1,44 +1,55 @@
 
-
 class Card {
-    id: number;
-    type: number;
-    card_name: string;
-    description: number;
+    id: number
+    type: number
+    card_name: string
+    description: number
     streetCredCost: number = Math.ceil(Math.random() *4)
-    x: number = 0;
-    y: number = 0;
+    x: number = 0
+    y: number = 0
     cardImage: p5.Graphics
+    tapped: boolean
+    summoningSickness: boolean = true
+    blocked: boolean
 
-
-    face = Math.floor(random(0,6));
-    brow = Math.floor(random(0,3));
-    glasses = Math.floor(random(0,10));
-    mouth = Math.floor(random(0,5));
-    shirt = Math.floor(random(0,9));
-    hair = Math.floor(random(0,25));
-    attack = Math.floor(random(1,6));
-    defense = Math.floor(random(1,6));
+    face = Math.floor(random(0,6))
+    brow = Math.floor(random(0,3))
+    glasses = Math.floor(random(0,10))
+    mouth = Math.floor(random(0,5))
+    shirt = Math.floor(random(0,9))
+    hair = Math.floor(random(0,25))
+    attack = Math.floor(random(1,6))
+    defense = Math.floor(random(1,6))
+    static SCALE = .25
 
     constructor() {
-        this.cardImage = createGraphics(540,760);
+        this.cardImage = createGraphics(540,760)
     }
     calculateCost() {
         return this.attack + this.defense
     }
     checkMouseIsOver() {
-        console.log(mouseX, mouseY)
-        console.log(this.x * 0.35, this.cardImage.width * 0.35)
-        console.log(this.y * 0.35, this.cardImage.height * 0.35)
+        return mouseX > this.x && mouseX < this.x+this.cardImage.width *Card.SCALE && mouseY > this.y && mouseY < this.y + this.cardImage.height *Card.SCALE
+    }
+    canAttack() {
+        return !this.tapped && !this.summoningSickness
+    }
+    canBePlayed(currentBoard: Array<Card>, player:Player):boolean {
+        if(player.streetCred < this.calculateCost()) {
+            return false
+        } else return true
+    }
+    drawBackgroundOfCard(highlighted = false) {
         
-        return mouseX > this.x * 0.35 && mouseX < this.x * 0.35+this.cardImage.width * 0.35 && mouseY > this.y * 0.35 && mouseY < this.y * 0.35 + this.cardImage.height * 0.35
+        this.cardImage.background("#ff7f0f")
+        this.cardImage.noFill()
+        this.cardImage.strokeWeight(10)
+        highlighted ? this.cardImage.stroke(0, 200, 255) : this.cardImage.stroke(0)
+        this.cardImage.rect(0,0,this.cardImage.width,this.cardImage.height)
     }
     draw(highlighted = false) {
-        this.cardImage.background("#ff7f0f");
-        this.cardImage.noFill();
-        this.cardImage.strokeWeight(10)
-        highlighted ? this.cardImage.stroke(125) : this.cardImage.stroke(0)
-        this.cardImage.rect(0,0,this.cardImage.width,this.cardImage.height)
+        this.drawBackgroundOfCard(highlighted)
+        this.cardImage.stroke(0)
         this.cardImage.rect(29,75,473,324)
         this.cardImage.strokeWeight(3)
         this.cardImage.textSize(36)
@@ -52,9 +63,8 @@ class Card {
         this.cardImage.image(ImagePreloader.preloadedImages['hair'+this.hair],-132,0)
         this.cardImage.image(ImagePreloader.preloadedImages['mouth'+this.mouth],-132,0)
         push()
-        translate(this.x, this.y)
-        scale(0.35)
-        image(this.cardImage, 0,0)
+        scale(Card.SCALE)
+        image(this.cardImage, this.x/Card.SCALE,this.y/Card.SCALE)
         pop()
     }
 }
