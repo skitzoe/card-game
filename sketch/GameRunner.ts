@@ -37,6 +37,8 @@ class GameRunner {
             this.goToNextPhase()
         });
         document.addEventListener('click', this.mousePressedHandler.bind(this))
+        document.addEventListener('dblclick', this.doubleClickHandler.bind(this))
+        console.log("Game constructed")
     }
 
     get otherPlayer() {
@@ -74,12 +76,15 @@ class GameRunner {
         if(this.currentPlayer.streetCred == 0)
           this.goToNextPhase()
       } else if(this.gamePhase == "change players") {
-        console.log("Changing players")
+        // Clear summoning sickness from current players cards
         this.currentPlayer.board.forEach(card => card.summoningSickness = false)
-
+        
+        // switch to other player active
         this.currentPlayer = this.otherPlayer;
 
+        // for the new active player untap all their cards
         this.currentPlayer.board.forEach(card => card.tapped = false)
+        this.goToNextPhase()
       }
       console.log(this.gamePhase)
     }
@@ -89,58 +94,26 @@ class GameRunner {
         this.gamePhase = "draw"
     }
 
-    draw() {
-      if(this.gamePhase == "play card" || this.gamePhase == "final play card") {
-        if(this.selectedCard && this.currentPlayer.hand.indexOf(this.selectedCard)!=-1 && this.selectedCard.canBePlayed(this.currentPlayer.board, this.currentPlayer)) {
-          this.currentPlayer.board.push(this.selectedCard)
-          this.currentPlayer.streetCred -= this.selectedCard.calculateCost()
-          this.currentPlayer.hand.splice(this.currentPlayer.hand.indexOf(this.selectedCard), 1)
-          this.selectedCard = null
-        }
-      }
-        if(this.gamePhase != "pregame") {
-          this.drawBoard()
-          this.drawPlayersHand(this.players[0])
-          this.drawPlayersHand(this.players[1], true)
-          this.drawGameText()
-        }
-    }
-
-    drawGameText() {
-      fill(255)
-      text(this.gamePhase, windowWidth - 200, windowHeight-100)
-      text("Player " + this.currentPlayer.playerNumber, windowWidth - 200, 30)
-      text("Life: " + this.currentPlayer.life, windowWidth - 200, 50)
-      text("Street Cred: " + this.currentPlayer.streetCred, windowWidth - 200, 70)
-      text("Graveyard Size: " + this.currentPlayer.graveYard.length, windowWidth - 200, 90)
-      if(this.gamePhase == "roll for cred") {
-        text("New Street Cred Earned: " + this.lastEarnedStreetCred, windowWidth - 200, windowHeight-120)
-      }
-    }
-
-    drawBoard() {
-      this.drawPlayersBoard(this.players[0])
-      this.drawPlayersBoard(this.players[1], true)
-    }
-
-    drawPlayersBoard(player:Player, drawOnTop: boolean = false) {
-      player.board.forEach(card => {
-        let yOffset = drawOnTop ? -100 : 100;
-        card.y = windowHeight/2 + yOffset;
-        card.x = windowWidth/2 + player.board.indexOf(card)*100 - player.board.length/2 * 100
-        card.draw(this.attackers.indexOf(card)!=-1)
-      })
-    }
-
-    handlePlayCard() {
+    handleSelectCard() {
       this.currentPlayer.hand.forEach(card => {
         if(card.checkMouseIsOver()) {
           this.selectedCard = card;
         }
       })
     }
+    playCardToBoard() {
+      if(this.gamePhase == "play card" || this.gamePhase == "final play card") {
+        if(this.selectedCard && this.currentPlayer.hand.indexOf(this.selectedCard)!=-1 && this.selectedCard.canBePlayed(this.currentPlayer.board, this.currentPlayer)) {
+          this.currentPlayer.board.push(this.selectedCard)
+          this.selectedCard.summoningSickness = true
+          this.currentPlayer.streetCred -= this.selectedCard.calculateCost()
+          this.currentPlayer.hand.splice(this.currentPlayer.hand.indexOf(this.selectedCard), 1)
+          this.selectedCard = null
+        }
+      }
+    }
 
-    handleChoosingAttackers() {
+    chooseAttackers() {
       if(this.currentPlayer.board.length > 0) {
         this.currentPlayer.board.forEach(card => {
           if(card.checkMouseIsOver() && this.attackers.indexOf(card) == -1 && card.canAttack()) {
@@ -169,16 +142,21 @@ class GameRunner {
             })
           }
         })
+        console.log(this.defenders)
       } else {
         this.goToNextPhase()
       }
     }
-
+    doubleClickHandler() {
+      if(this.gamePhase == "play card" || this.gamePhase == "final play card") {
+        this.playCardToBoard()
+      }
+    }
     mousePressedHandler() {
       if(this.gamePhase == "play card" || this.gamePhase == "final play card") {
-        this.handlePlayCard()
+        this.handleSelectCard()
       } else if(this.gamePhase == "choose attackers") {
-        this.handleChoosingAttackers()
+        this.chooseAttackers()
       }else if(this.gamePhase == "choose defenders") {
         this.handleChooseDefenders()
       }
@@ -212,23 +190,73 @@ class GameRunner {
             this.otherPlayer.life -= attackCard.attack
           }
         })
+        this.defenders = []
       } else {
         this.goToNextPhase()
       }
     }
+
+    // Graphics below here
+    draw() {
+        if(this.gamePhase != "pregame") {
+          this.drawBoard()
+          this.drawPlayersHand(this.players[0])
+          this.drawPlayersHand(this.players[1], true)
+          this.drawGameText()
+          if(this.defenders) {
+            this.drawDefenderLine()
+          }
+        }
+    }
+    drawDefenderLine() {
+      this.defenders.forEach(defenderMatch => {
+        let {defendingCard, attackingCard} = defenderMatch;
+        let {x, y} = defendingCard.getCenter()
+        let {x: x2, y: y2} = attackingCard.getCenter()
+        strokeWeight(3)
+        stroke(255, 0, 0)
+        line(x, y, x2, y2)
+        strokeWeight(0)
+      })
+    }
+    drawGameText() {
+      fill(255)
+      text(this.gamePhase, windowWidth - 200, windowHeight-100)
+      text("Player " + this.currentPlayer.playerNumber, windowWidth - 200, 30)
+      text("Life: " + this.currentPlayer.life, windowWidth - 200, 50)
+      text("Street Cred: " + this.currentPlayer.streetCred, windowWidth - 200, 70)
+      text("Graveyard Size: " + this.currentPlayer.graveYard.length, windowWidth - 200, 90)
+      text("New Street Cred Earned: " + this.lastEarnedStreetCred, windowWidth - 200, windowHeight-120)
+    }
+
+    drawBoard() {
+      this.drawPlayersBoard(this.players[0])
+      this.drawPlayersBoard(this.players[1], true)
+    }
+
+    drawPlayersBoard(player:Player, drawOnTop: boolean = false) {
+      player.board.forEach(card => {
+        let yOffset = drawOnTop ? -100 : 100;
+        card.y = windowHeight/2 + yOffset;
+        card.x = windowWidth/2 + player.board.indexOf(card)*150 - player.board.length/2 * 150
+        card.draw(this.attackers.indexOf(card)!=-1)
+      })
+    }
     
     drawPlayersHand(player:Player, drawOnTop = false) {
-      // Find selected card
+      let displayArray = player.hand.slice()
 
-      // Keep loop separate from above so only one card selected
-      player.hand.forEach(card => {
+      let isCardHovered = displayArray.filter(card => card.checkMouseIsOver())
+      if(player == this.currentPlayer && isCardHovered.length > 0) {
+        displayArray.sort((a, b) => {
+          return Math.pow(b.getCenter().x - mouseX, 2) - Math.pow(a.getCenter().x - mouseX, 2)
+        })
+      }
+
+      displayArray.forEach(card => {
         card.x = windowWidth/2 + player.hand.indexOf(card)*100 - player.hand.length/2 * 100
           
-        if(drawOnTop) {
-            card.y = 10;
-        } else {
-            card.y = windowHeight - 100;
-        }
+        card.y = drawOnTop ? 10 : windowHeight - 100;
 
         let highlighted = false
         if(this.selectedCard == card) {
