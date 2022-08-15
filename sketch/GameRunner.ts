@@ -14,6 +14,7 @@ class GameRunner {
       "choose defenders",
       "fight",
       "final play card",
+      "throw away card",
       "change players"
     ]
     gamePhase = "pregame"
@@ -22,7 +23,7 @@ class GameRunner {
     private selectedCard: Card
     private attackers: Array<Card> = []
     private defenders: Array<CardMatchUp> = []
-    private lastSelectedDefender: Card
+    private lastSelectedDefender: Card 
 
     constructor() {
         this.players = [
@@ -34,7 +35,12 @@ class GameRunner {
         button = createButton('Next')
         button.position(windowWidth-100, windowHeight-150)
         button.mousePressed(()=>{
-            this.goToNextPhase()
+          if(this.gamePhase == "throw away card") return
+
+          if(this.gamePhase != "draw")
+            this.changePhase()
+
+          this.processPhase()
         });
         document.addEventListener('click', this.mousePressedHandler.bind(this))
         document.addEventListener('dblclick', this.doubleClickHandler.bind(this))
@@ -49,33 +55,52 @@ class GameRunner {
       }
     }
 
-    goToNextPhase() {
+    changePhase() {  
       if(this.GAME_PHASES.indexOf(this.gamePhase)+1 < this.GAME_PHASES.length)
         this.gamePhase = this.GAME_PHASES[this.GAME_PHASES.indexOf(this.gamePhase)+1]
       else
         this.gamePhase = this.GAME_PHASES[1]
+    }
 
+    processPhase() {
       if(this.gamePhase == "draw") {
         this.currentPlayer.drawACard()
         this.attackers = []
         this.defenders = []
         this.lastEarnedStreetCred = this.currentPlayer.rollForStreetCred()
-        this.goToNextPhase()
-      }else if(this.gamePhase == "play card") {
+        this.changePhase()
+      }
+      
+      if(this.gamePhase == "play card") {
         // Waiting for user to play any cards they can then move on
         if(this.currentPlayer.streetCred == 0)
-          this.goToNextPhase()
-      }else if(this.gamePhase == "choose attackers") {
+          this.changePhase()
+      }
+
+      if(this.gamePhase == "choose attackers") {
         // Waiting for user to choose attackers
-      } else if(this.gamePhase == "choose defenders") {
+      }
+      
+      if(this.gamePhase == "choose defenders") {
         if(this.attackers.length <= 0)
-          this.goToNextPhase()
-      }else if(this.gamePhase == "fight") {
+          this.changePhase()
+      }
+      
+      if(this.gamePhase == "fight") {
         this.fight()
-      }else if(this.gamePhase == "final play card") {
+      }
+      
+      if(this.gamePhase == "final play card") {
         if(this.currentPlayer.streetCred == 0)
-          this.goToNextPhase()
-      } else if(this.gamePhase == "change players") {
+          this.changePhase()
+      }
+      
+      if(this.gamePhase == "throw away card") {
+        if(this.currentPlayer.hand.length < 8)
+          this.changePhase()
+      } 
+      
+      if(this.gamePhase == "change players") {
         // Clear summoning sickness from current players cards
         this.currentPlayer.board.forEach(card => card.summoningSickness = false)
         
@@ -84,7 +109,7 @@ class GameRunner {
 
         // for the new active player untap all their cards
         this.currentPlayer.board.forEach(card => card.tapped = false)
-        this.goToNextPhase()
+        this.changePhase()
       }
       console.log(this.gamePhase)
     }
@@ -113,6 +138,18 @@ class GameRunner {
       }
     }
 
+    playCardToGraveyard() {
+      if(this.gamePhase == "throw away card" ) {
+        if(this.selectedCard && this.currentPlayer.hand.indexOf(this.selectedCard)!=-1 ) {
+          this.currentPlayer.graveYard.push(this.selectedCard)
+          this.currentPlayer.hand.splice(this.currentPlayer.hand.indexOf(this.selectedCard), 1)
+          this.selectedCard = null
+          this.processPhase()
+      
+        }
+      }
+    }
+
     chooseAttackers() {
       if(this.currentPlayer.board.length > 0) {
         this.currentPlayer.board.forEach(card => {
@@ -122,7 +159,8 @@ class GameRunner {
           }
         })
       } else {
-        this.goToNextPhase()
+        this.changePhase()
+        this.processPhase()
       }
     }
 
@@ -144,16 +182,22 @@ class GameRunner {
         })
         console.log(this.defenders)
       } else {
-        this.goToNextPhase()
+        this.changePhase()
+        this.processPhase()
       }
     }
     doubleClickHandler() {
       if(this.gamePhase == "play card" || this.gamePhase == "final play card") {
         this.playCardToBoard()
-      }
+       }
+       if(this.gamePhase == "throw away card") {
+        this.playCardToGraveyard()
+       }
+
+      
     }
     mousePressedHandler() {
-      if(this.gamePhase == "play card" || this.gamePhase == "final play card") {
+      if(this.gamePhase == "play card" || this.gamePhase == "final play card" || this.gamePhase == "throw away card") {
         this.handleSelectCard()
       } else if(this.gamePhase == "choose attackers") {
         this.chooseAttackers()
@@ -192,7 +236,8 @@ class GameRunner {
         })
         this.defenders = []
       } else {
-        this.goToNextPhase()
+        this.changePhase()
+        this.processPhase()
       }
     }
 
@@ -221,6 +266,7 @@ class GameRunner {
     }
     drawGameText() {
       fill(255)
+      textSize(12)
       text(this.gamePhase, windowWidth - 200, windowHeight-100)
       text("Player " + this.currentPlayer.playerNumber, windowWidth - 200, 30)
       text("Life: " + this.currentPlayer.life, windowWidth - 200, 50)

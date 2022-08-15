@@ -23,7 +23,7 @@ class Player {
     }
 
     rollForStreetCred() {
-        const newStreetCred = Math.floor(Math.random()*5)
+        const newStreetCred = Math.floor(Math.random()*5)+1
         this.streetCred += newStreetCred
         return newStreetCred
     }
